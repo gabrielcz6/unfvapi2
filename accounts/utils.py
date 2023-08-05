@@ -38,7 +38,7 @@ def reg_rostro(img):
 
 
 def compare_images(image1, image2):
-     
+ try:     
      image1=reg_rostro(image1)
      if os.path.isfile("test.jpg"):
        os.remove("test.jpg")
@@ -63,4 +63,7 @@ def compare_images(image1, image2):
      # Usamos el método de la aplicación anterior para comparar las imágenes
      similitud = orb_sim(image1, image2)
      return similitud
-     
+ except Exception as e:
+    # Esto capturará cualquier otro error que no fue capturado por los except anteriores
+    print(f'Error inesperado: {e}')
+    return 0

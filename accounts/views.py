@@ -16,6 +16,7 @@ from rest_framework import status
 from .utils import get_image_from_firebase, compare_images
 from .models import CustomUser
 import io
+import base64
 
 class UpdateCustomUser(generics.UpdateAPIView):
     authentication_classes = [TokenAuthentication]  # Solo autenticación por token para esta vista
@@ -31,18 +32,18 @@ class ImageView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        image_received = request.FILES.get('image')
-        #print(type(image_received))
-        image_temp = Image.open(image_received)
+        #image_received = request.FILE.get('image')     
+        image_received = request.POST.get('image')
+        print(type(image_received))
+        image_temp=base64.b64decode(image_received)
+        image_temp=io.BytesIO(image_temp)
+        image_temp = Image.open(image_temp)
         image_temp.save('temp_imagerequest.jpg')
-        
-        
-        
-        # Descargar la imagen de Firebase
+        ## Descargar la imagen de Firebase
         image_url = request.user.urlfoto
         response = requests.get(image_url)
-        data = io.BytesIO(response.content)
-
+        #data = io.BytesIO(response.content)
+        data=io.BytesIO(response.content)
         # Abrir los bytes como una imagen
         image2 = Image.open(data)
         try:
@@ -50,7 +51,7 @@ class ImageView(APIView):
               if ExifTags.TAGS[orientation] == 'Orientation':
                   break
           exif = dict(image2._getexif().items())
-  
+
           if exif[orientation] == 3:
               image2 = image2.rotate(180, expand=True)
           elif exif[orientation] == 6:
@@ -68,3 +69,17 @@ class ImageView(APIView):
         else:
                  status = 0
                  return Response({'status': status})
+
+
+
+class CheckPhotoAPIView(generics.GenericAPIView):
+    authentication_classes = [TokenAuthentication]  # Solo autenticación por token para esta vista
+    permission_classes = [IsAuthenticated]
+    serializer_class = CustomUserSerializer
+
+    def get(self, request):
+        user = request.user
+        if user.tienefoto:
+            return Response({"tienefoto": True}, status=status.HTTP_200_OK)
+        else:
+            return Response({"tienefoto": False}, status=status.HTTP_200_OK)
