@@ -63,7 +63,7 @@ class ImageView(APIView):
           pass
         puntaje=(compare_images(image_temp, image2))
         #print(puntaje)
-        if puntaje>0.87:
+        if puntaje>0.95:
                  status = "verificado con :"+ str(round(puntaje * 100, 1)) + "%"
                  return Response({'status': status})
         else:
